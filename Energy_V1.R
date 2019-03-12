@@ -3,7 +3,7 @@
 # Data analysis department #
 # G1: Understand benefits of sub-metering and convince the home developer to become our client explaining advantages that he could get throught data analytics #
 # March 2019 #
-
+#Version 1 #
 
 
 
