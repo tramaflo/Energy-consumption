@@ -21,6 +21,10 @@ library(caret)
 
 library(plotly)
 
+library(ggfortify)
+
+library(forecast)
+
 
 # Importing data - create a database connection with the server ----------- 
 
@@ -153,7 +157,7 @@ EnergyConsumption$Hour <- hour(EnergyConsumption$DateTime)
 EnergyConsumption$Minute <- minute(EnergyConsumption$DateTime)
 
 
-# Change "Active power", "SubMetering 1/2" and " Weekdays" in NUMERIC var -
+# Change "GAP", "SubMetering 1/2" and " Weekdays" in NUMERIC var -
 
 EnergyConsumption$Global_active_power <- as.numeric(EnergyConsumption$Global_active_power)
 
@@ -186,3 +190,20 @@ EnergyConsumption$Date <- NULL
 EnergyConsumption$Time <- NULL
 
 summary(EnergyConsumption)
+
+
+# Energy not currently measured by the submeters (in watt hour)
+
+EnergyConsumption <- EnergyConsumption %>%
+  mutate(Sub_metering_4 = Global_active_power*(1000/60) -
+           Sub_metering_1 -
+           Sub_metering_2 -
+           Sub_metering_3) 
+
+summary(EnergyConsumption)
+
+EnergyConsumption1 <- 
+  EnergyConsumption %>%
+  na.omit(EnergyConsumption)
+
+summary(EnergyConsumption1)

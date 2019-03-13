@@ -6,12 +6,13 @@
 # Version 3 #
 
 
+
+# Retrieve previous dataframe ---------------------------------------------
+
 source(file = "Energy_V2.R")
 
-library(ggfortify)
-library(forecast)
 
-
+# Plan of attack examples -------------------------------------------------
 # Plot all of sub-meter 1 -------------------------------------------------
 
 plot(EnergyConsumption$Sub_metering_1)
@@ -69,6 +70,91 @@ plot_ly(houseDay10, x = ~houseDay10$DateTime, y = ~houseDay10$Sub_metering_1,
   layout(title = "Power Consumption January 9th, 2008",
          xaxis = list(title = "Time"),
          yaxis = list (title = "Power (watt-hours)"))
+
+
+# My visualization --------------------------------------------------------
+# Calculating the average per YEAR ----------------------------------------
+
+AvgYearAll <- EnergyConsumption1 %>%
+  group_by(Year) %>% 
+  filter(Year != 2010) %>% 
+  summarise(meanSub_1 = mean(Sub_metering_1),
+            meanSub_2 = mean(Sub_metering_2),
+            meanSub_3 = mean(Sub_metering_3),
+            meanSub_4 = mean(Sub_metering_4),
+            meanGAP = mean(Global_active_power))
+
+
+# Calculating the average per MONTH ---------------------------------------
+
+AvgMonthAll <- EnergyConsumption1 %>%
+  filter(Year != 2010) %>% 
+  group_by(Year,
+           Month) %>%
+  summarise(meanSub_1 = mean(Sub_metering_1),
+            meanSub_2 = mean(Sub_metering_2),
+            meanSub_3 = mean(Sub_metering_3),
+            meanSub_4 = mean(Sub_metering_4),
+            meanGAP = mean(Global_active_power))
+
+
+# Calculating the average per WEEK ----------------------------------------
+
+AvgWeekAll <- EnergyConsumption1 %>%
+  filter(Year != 2010) %>%
+  group_by(Year,
+           Week) %>%
+  summarise(meanSub_1 = mean(Sub_metering_1),
+            meanSub_2 = mean(Sub_metering_2),
+            meanSub_3 = mean(Sub_metering_3),
+            meanSub_4 = mean(Sub_metering_4),
+            meanGAP = mean(Global_active_power))
+
+
+# Calculating the average per DAY -----------------------------------------
+
+AvgDayAll <- EnergyConsumption1 %>%
+  filter(Year != 2010) %>%
+  group_by(Year,
+           Month,
+           Weekdays,
+           Day) %>%
+  summarise(meanSub_1 = mean(Sub_metering_1),
+            meanSub_2 = mean(Sub_metering_2),
+            meanSub_3 = mean(Sub_metering_3),
+            meanSub_4 = mean(Sub_metering_4),
+            meanGAP = mean(Global_active_power))
+
+
+# Calculating the average per HOUR ----------------------------------------
+
+AvgHourAll <- EnergyConsumption1 %>%
+  filter(Year != 2010) %>%
+  group_by(Year,
+           Month,
+           Weekdays,
+           Day,
+           Hour) %>%
+  summarise(meanSub_1 = mean(Sub_metering_1),
+            meanSub_2 = mean(Sub_metering_2),
+            meanSub_3 = mean(Sub_metering_3),
+            meanSub_4 = mean(Sub_metering_4),
+            meanGAP = mean(Global_active_power))
+
+
+#Subsets monthly averages per year#
+
+#2007
+AvgMonth2007 <- AvgMonthAll %>%
+  filter(Year == 2007)
+
+#2008
+AvgMonth2008 <- AvgMonthAll %>%
+  filter(Year == 2008) 
+
+#2009
+AvgMonth2009 <- AvgMonthAll %>%
+  filter(Year == 2009) 
 
 
 # Two additional visualizations -------------------------------------------
