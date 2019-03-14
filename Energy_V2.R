@@ -202,6 +202,9 @@ EnergyConsumption <- EnergyConsumption %>%
 
 summary(EnergyConsumption)
 
+
+# Delete NAs --------------------------------------------------------------
+
 EnergyConsumption1 <- 
   EnergyConsumption %>%
   na.omit(EnergyConsumption)
