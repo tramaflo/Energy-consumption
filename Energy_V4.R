@@ -255,11 +255,15 @@ plot_ly(AvgMonthAll, x = ~AvgMonthAll$Month, y = ~AvgMonth2007$meanSub_4,
          yaxis = list (title = "Power (watt-hours)"))
 
 
+
 # Forecast ----------------------------------------------------------------
-# Forecast time series by month - Sub-meter 1 ------------------------------
+# Forecast time series by month -------------------------------------------
+
+# Sub-meter 1
+# Make subset grouping by Year and Month 
 
 AvgMonthAllTS <- EnergyConsumption1 %>%
-  filter(Year != 2010& Year != 2006) %>%
+  filter(Year != 2010) %>%
   group_by(Year, Month) %>%
   summarise(meanSub_1 = mean(Sub_metering_1)*(24*(365/12)),
             meanSub_2 = mean(Sub_metering_2)*(24*(365/12)),
@@ -267,57 +271,97 @@ AvgMonthAllTS <- EnergyConsumption1 %>%
             meanSub_4 = mean(Sub_metering_4)*(24*(365/12)),
             meanGAP = mean(Global_active_power)* (1000/60)*(24*(365/12)))
 
+
+# Create TS object with sub-meter 1
+
 TSAvgMonthSM1 <- ts(AvgMonthAllTS$meanSub_1, frequency = 12, start = c(2007,1))
 
-## Plot sub-meter 1 with autoplot - add labels, color
-autoplot(TSAvgMonthSM1, ts.colour = 'red',
-         xlab = "Time", ylab = "Watt Hours", main = "Sub-meter 1")
 
-## Plot sub-meter 1 with plot.ts
+# Plot sub-meter 1 with autoplot - add labels, color
+
+autoplot(TSAvgMonthSM1, xlab = "Time", ylab = "Watt Hours", 
+         main = "Sub-meter 1")
+
+
+# Plot sub-meter 1 with plot.tsn(same as before, just different layout)
+
 plot.ts(TSAvgMonthSM1)
 
-FitTSSM1 <- tslm(TSAvgMonthSM1 ~ trend + season)
 
-summary(FitTSSM1)
+# Apply time series linear regression to the sub-meter 1
 
-sqrt(mean(FitTSSM1$residuals^2))
+FitSM1 <- tslm(TSAvgMonthSM1 ~ trend + season)
 
+summary(FitSM1)
 
-# Create Sub Meter 1 forecast with confidence levels 80 and 90 ---------------------
-
-forecastFitTSSM1 <- forecast(FitTSSM1, h=36, level=c(80,90))
+sqrt(mean(FitSM1$residuals^2))
 
 
-# Plot Sub Meter 1 forecast, limit y and add labels --------------------------------
+# Create sub-meter 1 forecast ahead 36 time periods with confidence levels 80 and 90 
 
-plot(forecastFitTSSM1, ylab= "Watt-Hours", xlab="Year")
+forecastFitSM1 <- forecast(FitSM1, h=36, level=c(80,90))
 
-# Decompose Sub-meter 1 into trend, seasonal and remainder
+
+# Plot sub-meter 1 forecast, limit y and add labels
+
+plot(forecastFitSM1, ylab= "Watt-Hours", xlab="Year")
+
+
+# Decompose sub-meter 1 into trend, seasonal and remainder
+
 componentsTSAvgMonthSM1 <- decompose(TSAvgMonthSM1)
+
+
 # Plot decomposed sub-meter 1 
+
 plot(componentsTSAvgMonthSM1)
+
+
 # Check summary statistics for decomposed sub-meter 1 
+
 summary(componentsTSAvgMonthSM1)
 
-# Seasonal adjusting sub-meter 1 by subtracting the seasonal component & plot
-TSAvgMonthSM1Adjusted <- TSAvgMonthSM1 - componentsTSAvgMonthSM1$seasonal
-autoplot(TSAvgMonthSM1Adjusted)
 
-# Test Seasonal Adjustment by running Decompose again
-plot(decompose(TSAvgMonthSM1Adjusted))
+# Seasonal adjusting sub-meter 1 by REMOVING the seasonal component & plot
+
+TSAvgMonthSM1Adj <- TSAvgMonthSM1 - componentsTSAvgMonthSM1$seasonal
+
+autoplot(TSAvgMonthSM1Adj)
+
+
+# Test Seasonal Adjustment by running Decompose AGAIN
+# (It is difficult to see if seasonality has been removed by looking at the plot 
+# Let's try decompose again and see if the  seasonal component was removed
+# Note the very, very small scale for Seasonal)
+
+plot(decompose(TSAvgMonthSM1Adj))
+
 
 # Holt Winters Exponential Smoothing & Plot
-TSAvgMonthSM1HW <- HoltWinters(TSAvgMonthSM1Adjusted, beta=FALSE, gamma=FALSE)
+# Create ts object that contains exponentially smoothed data with no seasonality
+
+TSAvgMonthSM1HW <- HoltWinters(TSAvgMonthSM1Adj, alpha=0.9, beta=0.2, gamma=FALSE)
+
 plot(TSAvgMonthSM1HW)
 
+
 # HoltWinters forecast & plot
+
 TSAvgMonthSM1HWForecast <- forecast(TSAvgMonthSM1HW, h=25)
+
 plot(TSAvgMonthSM1HWForecast, ylab= "Watt-Hours", xlab="Time - Sub-meter 1")
 
+
 # Forecast HoltWinters with diminished confidence levels
+
 TSAvgMonthSM1HWForecastC <- forecast(TSAvgMonthSM1HW, h=25, level=c(10,25))
+
+
 # Plot only the forecasted area
+
 plot(TSAvgMonthSM1HWForecastC, ylab= "Watt-Hours", xlab="Time - Sub-meter 1", start(2010))
+
+
 
 
 
