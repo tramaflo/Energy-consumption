@@ -206,11 +206,11 @@ plot_ly(AvgMonthAll, x = ~AvgMonthAll$Month, y = ~AvgMonth2007$meanGAP,
 # Meter 1
 
 plot_ly(AvgMonthAll, x = ~AvgMonthAll$Month, y = ~AvgMonth2007$meanSub_1,
-        name = 'Meter12007', 
+        name = 'Meter1-2007', 
         type = "scatter", 
         mode = "lines") %>%
-  add_trace(y = ~AvgMonth2008$meanSub_1, name = 'Meter12008', mode = 'lines') %>%
-  add_trace(y = ~AvgMonth2009$meanSub_1, name = 'Meter12009', mode = 'lines') %>%
+  add_trace(y = ~AvgMonth2008$meanSub_1, name = 'Meter1-2008', mode = 'lines') %>%
+  add_trace(y = ~AvgMonth2009$meanSub_1, name = 'Meter1-2009', mode = 'lines') %>%
   layout(title = "Differences in energy consumptions - Meter 1 by Year",
          xaxis = list(title = "Month"),
          yaxis = list (title = "Power (watt-hours)"))
@@ -259,7 +259,7 @@ plot_ly(AvgMonthAll, x = ~AvgMonthAll$Month, y = ~AvgMonth2007$meanSub_4,
 # Forecast ----------------------------------------------------------------
 # Forecast time series by month -------------------------------------------
 
-# Sub-meter 1
+# Sub-meter 1 -------------------------------------------------------------
 # Make subset grouping by Year and Month 
 
 AvgMonthAllTS <- EnergyConsumption1 %>%
@@ -362,249 +362,366 @@ TSAvgMonthSM1HWForecastC <- forecast(TSAvgMonthSM1HW, h=25, level=c(10,25))
 plot(TSAvgMonthSM1HWForecastC, ylab= "Watt-Hours", xlab="Time - Sub-meter 1", start(2010))
 
 
-
-
-
-
-
-
-
-
-
-# Forecast time series by month - Sub-meter 2 ------------------------------
+# Sub-meter 2 -------------------------------------------------------------
+# Create TS object with sub-meter 2
 
 TSAvgMonthSM2 <- ts(AvgMonthAllTS$meanSub_2, frequency = 12, start = c(2007,1))
 
-## Plot sub-meter 2 with autoplot - add labels, color
-autoplot(TSAvgMonthSM2, ts.colour = 'red',
-         xlab = "Time", ylab = "Watt Hours", main = "Sub-meter 2")
 
-## Plot sub-meter 2 with plot.ts
+# Plot sub-meter 2 with autoplot - add labels, color
+
+autoplot(TSAvgMonthSM2, xlab = "Time", ylab = "Watt Hours", 
+         main = "Sub-meter 2")
+
+
+# Plot sub-meter 2 with plot.tsn(same as before, just different layout)
+
 plot.ts(TSAvgMonthSM2)
 
-FitTSSM2 <- tslm(TSAvgMonthSM2 ~ trend + season)
 
-summary(FitTSSM2)
+# Apply time series linear regression to the sub-meter 2
 
-sqrt(mean(FitTSSM2$residuals^2))
+FitSM2 <- tslm(TSAvgMonthSM2 ~ trend + season)
 
+summary(FitSM2)
 
-# Create Sub Meter 2 forecast with confidence levels 80 and 90 ---------------------
-
-forecastFitTSSM2 <- forecast(FitTSSM2, h=36, level=c(80,90))
+sqrt(mean(FitSM2$residuals^2))
 
 
-# Plot Sub Meter 2 forecast, limit y and add labels --------------------------------
+# Create sub-meter 2 forecast ahead 36 time periods with confidence levels 80 and 90 
 
-plot(forecastFitTSSM2, ylab= "Watt-Hours", xlab="Year")
+forecastFitSM2 <- forecast(FitSM2, h=36, level=c(80,90))
 
-# Decompose Sub-meter 2 into trend, seasonal and remainder
+
+# Plot sub-meter 2 forecast, limit y and add labels
+
+plot(forecastFitSM2, ylab= "Watt-Hours", xlab="Year")
+
+
+# Decompose sub-meter 2 into trend, seasonal and remainder
+
 componentsTSAvgMonthSM2 <- decompose(TSAvgMonthSM2)
+
+
 # Plot decomposed sub-meter 2
+
 plot(componentsTSAvgMonthSM2)
+
+
 # Check summary statistics for decomposed sub-meter 2 
+
 summary(componentsTSAvgMonthSM2)
 
-# Seasonal adjusting sub-meter 2 by subtracting the seasonal component & plot
-TSAvgMonthSM2Adjusted <- TSAvgMonthSM2 - componentsTSAvgMonthSM2$seasonal
-autoplot(TSAvgMonthSM2Adjusted)
 
-# Test Seasonal Adjustment by running Decompose again
-plot(decompose(TSAvgMonthSM2Adjusted))
+# Seasonal adjusting sub-meter 2 by REMOVING the seasonal component & plot
+
+TSAvgMonthSM2Adj <- TSAvgMonthSM2 - componentsTSAvgMonthSM2$seasonal
+
+autoplot(TSAvgMonthSM2Adj)
+
+
+# Test Seasonal Adjustment by running Decompose AGAIN
+# (It is difficult to see if seasonality has been removed by looking at the plot 
+# Let's try decompose again and see if the  seasonal component was removed
+# Note the very, very small scale for Seasonal)
+
+plot(decompose(TSAvgMonthSM2Adj))
+
 
 # Holt Winters Exponential Smoothing & Plot
-TSAvgMonthSM2HW <- HoltWinters(TSAvgMonthSM2Adjusted, beta=FALSE, gamma=FALSE)
+# Create ts object that contains exponentially smoothed data with no seasonality
+
+TSAvgMonthSM2HW <- HoltWinters(TSAvgMonthSM2Adj, alpha=0.9, beta=0.2, gamma=FALSE)
+
 plot(TSAvgMonthSM2HW)
 
+
 # HoltWinters forecast & plot
-TSAvgMonthSM2HWForecast <- forecast(TSAvgMonthSM1HW, h=25)
+
+TSAvgMonthSM2HWForecast <- forecast(TSAvgMonthSM2HW, h=25)
+
 plot(TSAvgMonthSM2HWForecast, ylab= "Watt-Hours", xlab="Time - Sub-meter 2")
 
+
 # Forecast HoltWinters with diminished confidence levels
+
 TSAvgMonthSM2HWForecastC <- forecast(TSAvgMonthSM2HW, h=25, level=c(10,25))
+
+
 # Plot only the forecasted area
+
 plot(TSAvgMonthSM2HWForecastC, ylab= "Watt-Hours", xlab="Time - Sub-meter 2", start(2010))
 
 
-
-
-
-
-
-
-# Forecast time series by month - Sub-meter 3 ------------------------------
+# Sub-meter 3 -------------------------------------------------------------
+# Create TS object with sub-meter 3
 
 TSAvgMonthSM3 <- ts(AvgMonthAllTS$meanSub_3, frequency = 12, start = c(2007,1))
 
-## Plot sub-meter 3 with autoplot - add labels, color
-autoplot(TSAvgMonthSM3, ts.colour = 'red',
-         xlab = "Time", ylab = "Watt Hours", main = "Sub-meter 3")
 
-## Plot sub-meter 3 with plot.ts
+# Plot sub-meter 3 with autoplot - add labels, color
+
+autoplot(TSAvgMonthSM3, xlab = "Time", ylab = "Watt Hours", 
+         main = "Sub-meter 3")
+
+
+# Plot sub-meter 3 with plot.tsn(same as before, just different layout)
+
 plot.ts(TSAvgMonthSM3)
 
-FitTSSM3 <- tslm(TSAvgMonthSM3 ~ trend + season)
 
-summary(FitTSSM3)
+# Apply time series linear regression to the sub-meter 3
 
-sqrt(mean(FitTSSM3$residuals^2))
+FitSM3 <- tslm(TSAvgMonthSM3 ~ trend + season)
 
+summary(FitSM3)
 
-# Create Sub Meter 3 forecast with confidence levels 80 and 90 ---------------------
-
-forecastFitTSSM3 <- forecast(FitTSSM3, h=36, level=c(80,90))
+sqrt(mean(FitSM3$residuals^2))
 
 
-# Plot Sub Meter 3 forecast, limit y and add labels --------------------------------
+# Create sub-meter 3 forecast ahead 36 time periods with confidence levels 80 and 90 
 
-plot(forecastFitTSSM3, ylab= "Watt-Hours", xlab="Year")
+forecastFitSM3 <- forecast(FitSM3, h=36, level=c(80,90))
 
-# Decompose Sub-meter 3 into trend, seasonal and remainder
+
+# Plot sub-meter 3 forecast, limit y and add labels
+
+plot(forecastFitSM3, ylab= "Watt-Hours", xlab="Year")
+
+
+# Decompose sub-meter 3 into trend, seasonal and remainder
+
 componentsTSAvgMonthSM3 <- decompose(TSAvgMonthSM3)
-# Plot decomposed sub-meter 3 
+
+
+# Plot decomposed sub-meter 3
+
 plot(componentsTSAvgMonthSM3)
+
+
 # Check summary statistics for decomposed sub-meter 3
+
 summary(componentsTSAvgMonthSM3)
 
-# Seasonal adjusting sub-meter 3 by subtracting the seasonal component & plot
-TSAvgMonthSM3Adjusted <- TSAvgMonthSM3 - componentsTSAvgMonthSM3$seasonal
-autoplot(TSAvgMonthSM3Adjusted)
 
-# Test Seasonal Adjustment by running Decompose again
-plot(decompose(TSAvgMonthSM3Adjusted))
+# Seasonal adjusting sub-meter 3 by REMOVING the seasonal component & plot
+
+TSAvgMonthSM3Adj <- TSAvgMonthSM3 - componentsTSAvgMonthSM3$seasonal
+
+autoplot(TSAvgMonthSM3Adj)
+
+
+# Test Seasonal Adjustment by running Decompose AGAIN
+# (It is difficult to see if seasonality has been removed by looking at the plot 
+# Let's try decompose again and see if the  seasonal component was removed
+# Note the very, very small scale for Seasonal)
+
+plot(decompose(TSAvgMonthSM3Adj))
+
 
 # Holt Winters Exponential Smoothing & Plot
-TSAvgMonthSM3HW <- HoltWinters(TSAvgMonthSM3Adjusted, beta=FALSE, gamma=FALSE)
+# Create ts object that contains exponentially smoothed data with no seasonality
+
+TSAvgMonthSM3HW <- HoltWinters(TSAvgMonthSM3Adj, alpha=0.9, beta=0.2, gamma=FALSE)
+
 plot(TSAvgMonthSM3HW)
 
+
 # HoltWinters forecast & plot
+
 TSAvgMonthSM3HWForecast <- forecast(TSAvgMonthSM3HW, h=25)
+
 plot(TSAvgMonthSM3HWForecast, ylab= "Watt-Hours", xlab="Time - Sub-meter 3")
 
+
 # Forecast HoltWinters with diminished confidence levels
+
 TSAvgMonthSM3HWForecastC <- forecast(TSAvgMonthSM3HW, h=25, level=c(10,25))
+
+
 # Plot only the forecasted area
+
 plot(TSAvgMonthSM3HWForecastC, ylab= "Watt-Hours", xlab="Time - Sub-meter 3", start(2010))
 
 
-
-
-
-
-
-
-# Forecast time series by month - Sub-meter 4 ------------------------------
+# Sub-meter 4 -------------------------------------------------------------
+# Create TS object with sub-meter 4
 
 TSAvgMonthSM4 <- ts(AvgMonthAllTS$meanSub_4, frequency = 12, start = c(2007,1))
 
-## Plot sub-meter 4 with autoplot - add labels, color
-autoplot(TSAvgMonthSM4, ts.colour = 'red',
-         xlab = "Time", ylab = "Watt Hours", main = "Sub-meter 4")
 
-## Plot sub-meter 4 with plot.ts
+# Plot sub-meter 4 with autoplot - add labels, color
+
+autoplot(TSAvgMonthSM4, xlab = "Time", ylab = "Watt Hours", 
+         main = "Sub-meter 4")
+
+
+# Plot sub-meter 4 with plot.tsn(same as before, just different layout)
+
 plot.ts(TSAvgMonthSM4)
 
-FitTSSM4 <- tslm(TSAvgMonthSM4 ~ trend + season)
 
-summary(FitTSSM4)
+# Apply time series linear regression to the sub-meter 4
 
-sqrt(mean(FitTSSM4$residuals^2))
+FitSM4 <- tslm(TSAvgMonthSM4 ~ trend + season)
 
+summary(FitSM4)
 
-# Create Sub Meter 4 forecast with confidence levels 80 and 90 ---------------------
-
-forecastFitTSSM4 <- forecast(FitTSSM4, h=36, level=c(80,90))
+sqrt(mean(FitSM4$residuals^2))
 
 
-# Plot Sub Meter 4 forecast, limit y and add labels --------------------------------
+# Create sub-meter 4 forecast ahead 36 time periods with confidence levels 80 and 90 
 
-plot(forecastFitTSSM4, ylab= "Watt-Hours", xlab="Year")
+forecastFitSM4 <- forecast(FitSM4, h=36, level=c(80,90))
 
-# Decompose Sub-meter 4 into trend, seasonal and remainder
+
+# Plot sub-meter 4 forecast, limit y and add labels
+
+plot(forecastFitSM4, ylab= "Watt-Hours", xlab="Year")
+
+
+# Decompose sub-meter 4 into trend, seasonal and remainder
+
 componentsTSAvgMonthSM4 <- decompose(TSAvgMonthSM4)
+
+
 # Plot decomposed sub-meter 4
+
 plot(componentsTSAvgMonthSM4)
-# Check summary statistics for decomposed sub-meter 4 
+
+
+# Check summary statistics for decomposed sub-meter 4
+
 summary(componentsTSAvgMonthSM4)
 
-# Seasonal adjusting sub-meter 4 by subtracting the seasonal component & plot
-TSAvgMonthSM4Adjusted <- TSAvgMonthSM4 - componentsTSAvgMonthSM4$seasonal
-autoplot(TSAvgMonthSM4Adjusted)
 
-# Test Seasonal Adjustment by running Decompose again
-plot(decompose(TSAvgMonthSM4Adjusted))
+# Seasonal adjusting sub-meter 4 by REMOVING the seasonal component & plot
+
+TSAvgMonthSM4Adj <- TSAvgMonthSM4 - componentsTSAvgMonthSM4$seasonal
+
+autoplot(TSAvgMonthSM4Adj)
+
+
+# Test Seasonal Adjustment by running Decompose AGAIN
+# (It is difficult to see if seasonality has been removed by looking at the plot 
+# Let's try decompose again and see if the  seasonal component was removed
+# Note the very, very small scale for Seasonal)
+
+plot(decompose(TSAvgMonthSM4Adj))
+
 
 # Holt Winters Exponential Smoothing & Plot
-TSAvgMonthSM4HW <- HoltWinters(TSAvgMonthSM4Adjusted, beta=FALSE, gamma=FALSE)
+# Create ts object that contains exponentially smoothed data with no seasonality
+
+TSAvgMonthSM4HW <- HoltWinters(TSAvgMonthSM4Adj, alpha=0.9, beta=0.2, gamma=FALSE)
+
 plot(TSAvgMonthSM4HW)
 
+
 # HoltWinters forecast & plot
+
 TSAvgMonthSM4HWForecast <- forecast(TSAvgMonthSM4HW, h=25)
+
 plot(TSAvgMonthSM4HWForecast, ylab= "Watt-Hours", xlab="Time - Sub-meter 4")
 
+
 # Forecast HoltWinters with diminished confidence levels
+
 TSAvgMonthSM4HWForecastC <- forecast(TSAvgMonthSM4HW, h=25, level=c(10,25))
+
+
 # Plot only the forecasted area
+
 plot(TSAvgMonthSM4HWForecastC, ylab= "Watt-Hours", xlab="Time - Sub-meter 4", start(2010))
 
-
-
-
-
-
-
-
-# Forecast time series by month - GAP --------------------------------------
+ 
+# GAP ---------------------------------------------------------------------
+# Create TS object with GAP
 
 TSAvgMonthGAP <- ts(AvgMonthAllTS$meanGAP, frequency = 12, start = c(2007,1))
 
-## Plot GAP with autoplot - add labels, color
-autoplot(TSAvgMonthGAP, ts.colour = 'red',
-         xlab = "Time", ylab = "Watt Hours", main = "GAP")
 
-## Plot GAP with plot.ts
+# Plot GAP with autoplot - add labels, color
+
+autoplot(TSAvgMonthGAP, xlab = "Time", ylab = "Watt Hours", 
+         main = "GAP")
+
+
+# Plot GAP with plot.tsn(same as before, just different layout)
+
 plot.ts(TSAvgMonthGAP)
 
-FitTSGAP <- tslm(TSAvgMonthGAP ~ trend + season)
 
-summary(FitTSGAP)
+# Apply time series linear regression to the GAP
 
-sqrt(mean(FitTSGAP$residuals^2))
+FitGAP <- tslm(TSAvgMonthGAP ~ trend + season)
 
+summary(FitGAP)
 
-# Create GAP forecast with confidence levels 80 and 90 ---------------------
-
-forecastFitTSGAP <- forecast(FitTSGAP, h=36, level=c(80,90))
+sqrt(mean(FitGAP$residuals^2))
 
 
-# Plot GAP forecast, limit y and add labels --------------------------------
+# Create GAP forecast ahead 36 time periods with confidence levels 80 and 90 
 
-plot(forecastFitTSGAP, ylab= "Watt-Hours", xlab="Year")
+forecastFitGAP <- forecast(FitGAP, h=36, level=c(80,90))
+
+
+# Plot GAP forecast, limit y and add labels
+
+plot(forecastFitGAP, ylab= "Watt-Hours", xlab="Year")
+
 
 # Decompose GAP into trend, seasonal and remainder
+
 componentsTSAvgMonthGAP <- decompose(TSAvgMonthGAP)
+
+
 # Plot decomposed GAP
+
 plot(componentsTSAvgMonthGAP)
-# Check summary statistics for decomposed GAP 
+
+
+# Check summary statistics for decomposed GAP
+
 summary(componentsTSAvgMonthGAP)
 
-# Seasonal adjusting GAP by subtracting the seasonal component & plot
-TSAvgMonthGAPAdjusted <- TSAvgMonthGAP - componentsTSAvgMonthGAP$seasonal
-autoplot(TSAvgMonthGAPAdjusted)
 
-# Test Seasonal Adjustment by running Decompose again
-plot(decompose(TSAvgMonthGAPAdjusted))
+# Seasonal adjusting GAP by REMOVING the seasonal component & plot
+
+TSAvgMonthGAPAdj <- TSAvgMonthGAP - componentsTSAvgMonthGAP$seasonal
+
+autoplot(TSAvgMonthGAPAdj)
+
+
+# Test Seasonal Adjustment by running Decompose AGAIN
+# (It is difficult to see if seasonality has been removed by looking at the plot 
+# Let's try decompose again and see if the  seasonal component was removed
+# Note the very, very small scale for Seasonal)
+
+plot(decompose(TSAvgMonthGAPAdj))
+
 
 # Holt Winters Exponential Smoothing & Plot
-TSAvgMonthGAPHW <- HoltWinters(TSAvgMonthGAPAdjusted, beta=FALSE, gamma=FALSE)
+# Create ts object that contains exponentially smoothed data with no seasonality
+
+TSAvgMonthGAPHW <- HoltWinters(TSAvgMonthGAPAdj, alpha=0.9, beta=0.2, gamma=FALSE)
+
 plot(TSAvgMonthGAPHW)
 
+
 # HoltWinters forecast & plot
+
 TSAvgMonthGAPHWForecast <- forecast(TSAvgMonthGAPHW, h=25)
+
 plot(TSAvgMonthGAPHWForecast, ylab= "Watt-Hours", xlab="Time - GAP")
 
+
 # Forecast HoltWinters with diminished confidence levels
+
 TSAvgMonthGAPHWForecastC <- forecast(TSAvgMonthGAPHW, h=25, level=c(10,25))
+
+
 # Plot only the forecasted area
+
 plot(TSAvgMonthGAPHWForecastC, ylab= "Watt-Hours", xlab="Time - GAP", start(2010))
 
