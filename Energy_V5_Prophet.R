@@ -1,3 +1,10 @@
+# Energy Consumption analysis #
+# Floriana Trama #
+# Data analysis department
+# March 2019 #
+
+
+
 # Libraries ---------------------------------------------------------------
 
 library(RMySQL)
@@ -155,89 +162,89 @@ DailyGAP$ds <- date(DailyGAP$ds)
 # Forecasting -------------------------------------------------------------
 # Sub-meter 1
 
-m <- prophet(DailySM1, daily.seasonality = TRUE)
+m1 <- prophet(DailySM1, daily.seasonality = TRUE)
 
-future <- make_future_dataframe(m, periods = 730)
+future <- make_future_dataframe(m1, periods = 730)
 
-forecastSM1 <- predict(m, future)
+forecastSM1 <- predict(m1, future)
 
-plot(m, forecastSM1)
+plot(m1, forecastSM1)
 
-dyplot.prophet(m, forecastSM1)
+dyplot.prophet(m1, forecastSM1)
 
 
 # For individual components
 
-prophet_plot_components(m, forecastSM1)
+prophet_plot_components(m1, forecastSM1)
 
 
 # Sub-meter 2
 
-m <- prophet(DailySM2, daily.seasonality = TRUE)
+m2 <- prophet(DailySM2, daily.seasonality = TRUE)
 
-future <- make_future_dataframe(m, periods = 730)
+future <- make_future_dataframe(m2, periods = 730)
 
-forecastSM2 <- predict(m, future)
+forecastSM2 <- predict(m2, future)
 
-plot(m, forecastSM2)
+plot(m2, forecastSM2)
 
-dyplot.prophet(m, forecastSM2)
+dyplot.prophet(m2, forecastSM2)
 
 
 # For individual components
 
-prophet_plot_components(m, forecastSM2)
+prophet_plot_components(m2, forecastSM2)
 
 
 # Sub-meter 3
 
-m <- prophet(DailySM3, daily.seasonality = TRUE)
+m3 <- prophet(DailySM3, daily.seasonality = TRUE)
 
-future <- make_future_dataframe(m, periods = 730)
+future <- make_future_dataframe(m3, periods = 730)
 
-forecastSM3 <- predict(m, future)
+forecastSM3 <- predict(m3, future)
 
-plot(m, forecastSM3)
+plot(m3, forecastSM3)
 
-dyplot.prophet(m, forecastSM3)
+dyplot.prophet(m3, forecastSM3)
 
 
 # For individual components
 
-prophet_plot_components(m, forecastSM3)
+prophet_plot_components(m3, forecastSM3)
 
 
 # Sub-meter 4
 
-m <- prophet(DailySM4, daily.seasonality = TRUE)
+m4 <- prophet(DailySM4, daily.seasonality = TRUE)
 
-future <- make_future_dataframe(m, periods = 730)
+future <- make_future_dataframe(m4, periods = 730)
 
-forecastSM4 <- predict(m, future)
+forecastSM4 <- predict(m4, future)
 
-plot(m, forecastSM4)
+plot(m4, forecastSM4)
 
-dyplot.prophet(m, forecastSM4)
+dyplot.prophet(m4, forecastSM4)
 
 
 # For individual components
 
-prophet_plot_components(m, forecastSM4)
+prophet_plot_components(m4, forecastSM4)
 
 
 # Global active energy
 
-m <- prophet(DailyGAP, daily.seasonality = TRUE)
+mG <- prophet(DailyGAP, daily.seasonality = TRUE)
 
-future <- make_future_dataframe(m, periods = 730)
+future <- make_future_dataframe(mG, periods = 730)
 
-forecastGAP <- predict(m, future)
+forecastGAP <- predict(mG, future)
 
-plot(m, forecastGAP)
+plot(mG, forecastGAP)
 
-dyplot.prophet(m, forecastGAP)
+dyplot.prophet(mG, forecastGAP)
 
 
 # For individual components
 
-prophet_plot_components(m, forecastGAP)
+prophet_plot_components(mG, forecastGAP)
